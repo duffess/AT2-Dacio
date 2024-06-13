@@ -1,0 +1,43 @@
+Mini Projeto 1 - Web Scraping Da wikipedia
+
+Dica: Use métodos de tratamento de exceções para lidar com possíveis problemas de rede e estrutura HTML inesperada.
+
+Sobre: Desenvolver um ou mais codigos para extrair informacao das tabelas de jogos presentes nas paginas da wikipedia abaixo, realizar a limpeza dos dados e exportar esses dados para diferentes arquivos
+
+Link Ps5: "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_PlayStation_5"
+Link Ps4: "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_PlayStation_4"
+Link Xbox's: "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_Xbox_Series_X_e_Series_S"
+Link X360: "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_Xbox_360
+Link Nintendo: "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_Nintendo_Switch"
+
+Funcionalidades: 
+
+a) Web Scraping: Utilizar BeautifulSoup para extrair as tabelas de jogos das páginas da Wikipédia.
+b) Processamento de Dados: Organizar os dados extraídos em um DataFrame utilizando pandas.
+c) Limpeza de Dados: Realizar uma limpeza e adequação dos dados obtidos por scraping.
+d) Exportação de Dados: Salvar os dados processados em arquivos CSV, JSON ou Excel.
+
+Objetivos:
+
+a) Utilizar técnicas de web scraping.
+b) Manipular dados utilizando pandas.
+c) Tratar exceções em Python.
+
+Topicos abordados:
+a) Web scraping com BeautifulSoup.
+b) Manipulação de dados com pandas.
+c) Tratamento de exceções em Python.
+
+
+Abordagem de implementação:
+1.
+
+A)Utilize requests para fazer a requisição das páginas.
+B) Utilize BeautifulSoup para fazer o parsing do HTML e encontrar as tabelas desejadas.
+C) Extraia os cabeçalhos e as linhas das tabelas.
+
+2.
+
+A)Converta os dados extraídos em um DataFrame do pandas.
+B) Utilize pandas para fazer a checagem e limpeza dos dados.
+C) Exporte o DataFrame para um arquivo CSV, JSON ou Excel.
