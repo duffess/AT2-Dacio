@@ -1,73 +1,51 @@
-import requests  # importa a biblioteca requests para fazer requisicoes HTTP
-from bs4 import BeautifulSoup  # importa BeautifulSoup para fazer o parsing do HTML
-import pandas as pd  # importa pandas para trabalhar com DataFrames
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
 
-# url da pagina da Wikipedia sobre jogos para Xbox Series X e Series S
-url = "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_Xbox_Series_X_e_Series_S"
+url_xbox_series = "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_Xbox_Series_X_e_Series_S"
 
-# faz uma requisicao HTTP GET para a url e guarda a resposta na variavel response
-response = requests.get(url)
+try:
+    response = requests.get(url_xbox_series)
+    response.raise_for_status()  # Lança uma exceção se a requisição não for bem-sucedida (código de status diferente de 2xx)
+    
+    conteudo = response.content.decode("utf-8")
+    soup = BeautifulSoup(conteudo, 'html.parser')
 
-# obtem o conteudo da resposta e decodifica usando utf-8
-conteudo = response.content.decode("utf-8")
+    table = soup.find('table', {'class': 'sortable'})
 
-# cria um objeto BeautifulSoup para fazer o parsing do HTML
-soup = BeautifulSoup(conteudo, 'html.parser')
+    if table:
+        data = []
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all(['th', 'td'])
+            cols = [cell.get_text(strip=True) for cell in cols]
+            data.append(cols)
 
-# seleciona a primeira tabela com a classe 'sortable'
-table = soup.find('table', {'class': 'sortable'})
+        df = pd.DataFrame(data)
+        if not df.empty:
+            df.columns = df.iloc[0]
+            df = df[1:]
+            df.columns = [f"col_{i}" for i in range(len(df.columns))]  # Renomeia as colunas
+            df = df.dropna(how='all')
+            df.reset_index(drop=True, inplace=True)
+            df = df.drop_duplicates()
+            df.fillna('VALOR-VAZIO', inplace=True)
 
-if table:  # se a tabela foi encontrada
-    data = []  # cria uma lista vazia para armazenar os dados
-    rows = table.find_all('tr')  # encontra todas as linhas da tabela
-    for row in rows:  # para cada linha na tabela
-        cols = row.find_all(['th', 'td'])  # encontra todas as colunas na linha
-        cols = [cell.get_text(strip=True) for cell in cols]  # obtem o texto de cada coluna, removendo espacos extras
-        data.append(cols)  # adiciona os dados da linha na lista data
+            dirCSV = "../AT2/Mini-Projeto1/XBOXxs/dataframeXBOXSERIES.csv"
+            df.to_csv(dirCSV, encoding='utf-8', index=False)
 
-    # cria um DataFrame com os dados obtidos da tabela
-    df = pd.DataFrame(data)
+            dirJSON = "../AT2/Mini-Projeto1/XBOXxs/dataframeXBOXSERIES.json"
+            df.to_json(dirJSON, index=False)
 
-    # define a primeira linha como cabecalho do DataFrame
-    df.columns = df.iloc[0]
+            dirXLSX = "../AT2/Mini-Projeto1/XBOXxs/dataframeXBOXSERIES.xlsx"
+            df.to_excel(dirXLSX, index=False)
 
-    # remove a primeira linha do DataFrame (cabecalho duplicado)
-    df = df[1:]
-
-    # renomeia as colunas para col_0, col_1, col_2, ...
-    df.columns = [f"col_{i}" for i in range(len(df.columns))]
-
-    # remove linhas que sao completamente nulas
-    df = df.dropna(how='all')
-
-    # reseta os indices do DataFrame apos remocao de linhas nulas
-    df.reset_index(drop=True, inplace=True)
-
-    # remove linhas duplicadas do DataFrame
-    df = df.drop_duplicates()
-
-    # preenche valores nulos com 'VALOR-VAZIO'
-    df.fillna('VALOR-VAZIO', inplace=True)
-else:
-    print('Tabela nao encontrada')  # se a tabela nao foi encontrada, imprime mensagem
-
-# diretorio e nome do arquivo CSV onde o DataFrame sera salvo
-dirCSV = "../AT2/Mini-Projeto1/XBOXxs/dataframeXBOXSERIES.csv"
-
-# salva o DataFrame em um arquivo CSV
-df.to_csv(dirCSV, encoding='utf-8', index=False)
-
-# diretorio e nome do arquivo JSON onde o DataFrame sera salvo
-dirJSON = "../AT2/Mini-Projeto1/XBOXxs/dataframeXBOXSERIES.json"
-
-# salva o DataFrame em um arquivo JSON
-df.to_json(dirJSON, index=False)
-
-# diretorio e nome do arquivo XLSX onde o DataFrame sera salvo
-dirXLSX = "../AT2/Mini-Projeto1/XBOXxs/dataframeXBOXSERIES.xlsx"
-
-# salva o DataFrame em um arquivo XLSX
-df.to_excel(dirXLSX, index=False)
-
-# imprime o DataFrame
-print(df)
+            print(df)
+        else:
+            print('DataFrame vazio - nenhuma tabela de jogos encontrada')
+    else:
+        print('Tabela não encontrada')
+except requests.exceptions.RequestException as e:
+    print(f'Erro durante a requisição HTTP: {e}')
+except Exception as e:
+    print(f'Ocorreu um erro inesperado: {e}')

@@ -1,42 +1,51 @@
-# PS5
-import requests  # importa o requests
-from bs4 import BeautifulSoup  # importa o BeautifulSoup
-import pandas as pd  # importa o pandas
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
 
-url = "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_PlayStation_5"  # url da pagina da Wikipedia sobre jogos para PS5
-response = requests.get(url)  # faz uma requisicao HTTP GET para a url e guarda na variavel response
-conteudo = response.content.decode("utf-8")  # obtem o conteudo da resposta e decodifica usando utf-8
-soup = BeautifulSoup(conteudo, 'html.parser')  # cria um objeto BeautifulSoup para fazer o parsing do html
+url_ps5 = "https://pt.wikipedia.org/wiki/Lista_de_jogos_para_PlayStation_5"
 
-# seleciona a primeira tabela com a classe 'sortable'
-table = soup.find('table', {'class': 'sortable'})
+try:
+    response = requests.get(url_ps5)
+    response.raise_for_status()  # Lança uma exceção se a requisição não for bem-sucedida (código de status diferente de 2xx)
+    
+    conteudo = response.content.decode("utf-8")
+    soup = BeautifulSoup(conteudo, 'html.parser')
 
-if table:  # se a tabela foi encontrada
-    data = []  # cria uma lista vazia para armazenar os dados
-    rows = table.find_all('tr')  # encontra todas as linhas da tabela
-    for row in rows:  # para cada linha na tabela
-        cols = row.find_all(['th', 'td'])  # encontra todas as colunas na linha
-        cols = [cell.get_text(strip=True) for cell in cols]  # obtem o texto de cada coluna, removendo espacos extras
-        data.append(cols)  # adiciona os dados da linha na lista data
+    table = soup.find('table', {'class': 'sortable'})
 
-    df = pd.DataFrame(data)  # cria um DataFrame com os dados
-    df.columns = df.iloc[0]  # define a primeira linha como cabecalho
-    df = df[1:]  # remove a primeira linha do DataFrame
-    df.columns = [f"col_{i}" for i in range(len(df.columns))]  # renomeia as colunas
-    df = df.dropna(how='all')  # remove linhas que sao completamente nulas
-    df.reset_index(drop=True, inplace=True)  # reseta os indices do DataFrame
-    df = df.drop_duplicates()  # remove linhas duplicadas
-    df.fillna('VALOR-VAZIO', inplace=True)  # preenche valores nulos com 'VALOR-VAZIO'
-else:
-    print('Tabela nao encontrada')  # se a tabela nao foi encontrada, imprime mensagem
+    if table:
+        data = []
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all(['th', 'td'])
+            cols = [cell.get_text(strip=True) for cell in cols]
+            data.append(cols)
 
-dirCSV = "../AT2/Mini-Projeto1/PS5/dataframe.csv"  # define o caminho do arquivo csv
-df.to_csv(dirCSV, encoding='utf-8', index=False)  # salva o DataFrame em um arquivo csv
+        df = pd.DataFrame(data)
+        if not df.empty:
+            df.columns = df.iloc[0]
+            df = df[1:]
+            df.columns = [f"col_{i}" for i in range(len(df.columns))]  # Renomeia as colunas
+            df = df.dropna(how='all')
+            df.reset_index(drop=True, inplace=True)
+            df = df.drop_duplicates()
+            df.fillna('VALOR-VAZIO', inplace=True)
 
-dirJSON = "../AT2/Mini-Projeto1/PS5/dataframe.json"  # define o caminho do arquivo json
-df.to_json(dirJSON, index=False)  # salva o DataFrame em um arquivo json
+            dirCSV = "../AT2/Mini-Projeto1/PS5/dataframePS5.csv"
+            df.to_csv(dirCSV, encoding='utf-8', index=False)
 
-dirXLSX = "../AT2/Mini-Projeto1/PS5/dataframe.xlsx"  # define o caminho do arquivo xlsx
-df.to_excel(dirXLSX, index=False)  # salva o DataFrame em um arquivo xlsx
+            dirJSON = "../AT2/Mini-Projeto1/PS5/dataframePS5.json"
+            df.to_json(dirJSON, index=False)
 
-print(df)  # imprime o DataFrame
+            dirXLSX = "../AT2/Mini-Projeto1/PS5/dataframePS5.xlsx"
+            df.to_excel(dirXLSX, index=False)
+
+            print(df)
+        else:
+            print('DataFrame vazio - nenhuma tabela de jogos encontrada')
+    else:
+        print('Tabela não encontrada')
+except requests.exceptions.RequestException as e:
+    print(f'Erro durante a requisição HTTP: {e}')
+except Exception as e:
+    print(f'Ocorreu um erro inesperado: {e}')
